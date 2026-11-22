@@ -1,3 +1,5 @@
+**Live demo:** https://sales-pipeline-sz3d.netlify.app (runs entirely in your browser; open a second tab as Rahul from the Simulator to test two users)
+
 ## Run
 
 Needs Node 20.19+ or 22.12+ (see `.nvmrc`).
