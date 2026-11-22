@@ -1,0 +1,13 @@
+# Netlify: build the app and serve it as a static site (the fake backend runs in the browser).
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Single-page app: every path (e.g. /deals?view=all) serves index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
