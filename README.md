@@ -54,6 +54,31 @@ Why it's built this way, the trade-offs and what I rejected: see [WRITEUP.md](WR
 
 ## Architecture
 
+```mermaid
+flowchart LR
+  subgraph Tab["Browser tab"]
+    UI["React UI<br/>board · table · tray · panels"]
+    Hooks["Hooks<br/>rows & order snapshot · selection · keyboard"]
+    Client["PipelineClient (sync engine)<br/>pending changes · send queue · retries + keys<br/>conflicts · versions"]
+    Jobs["bulkJobs<br/>select-all as server jobs"]
+    Conn["connection<br/>online · offline · unreachable"]
+    Outbox["Outbox<br/>sessionStorage + IndexedDB"]
+    UI --> Hooks --> Client
+    Client -. "re-render only<br/>the changed card" .-> UI
+    Client --- Jobs
+    Client --- Conn
+    Client --> Outbox
+  end
+  API{{"deal.api.ts<br/>the only contract"}}
+  subgraph Worker["SharedWorker: fake backend"]
+    Server["FakeServer<br/>checks stage you saw · idempotency · versions · jobs"]
+    DB[("IndexedDB<br/>changed deals")]
+    Server --> DB
+  end
+  Client <--> API <--> Server
+  Server -. "pushes to every tab" .-> Other["Rahul's tab"]
+```
+
 - **The UI only draws.** React components read deals and call commands; they hold no sync logic.
 - **`PipelineClient` is the sync engine** (plain TypeScript, outside React): confirmed deals, your unsaved changes, retries with idempotency keys, conflicts, live updates and bulk jobs. React subscribes to it, so a card re-renders only when its own deal changes.
 - **The app only talks to the backend through `deal.api.ts`** (move, pushes, catch-up, bulk jobs). The fake server implements it today; a real API would replace one file.
